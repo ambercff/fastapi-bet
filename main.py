@@ -7,6 +7,8 @@ import requests
 
 app = FastAPI()
 
+tokens = []
+
 # 'response_model' serve para dizer qual tipo de retorno a função vai ter, nesse caso vai ser o tipo ItemRead, um modelo criado no arquivo models.py
 @app.post('/create_bet', response_model=BetRead)
 async def create_bet(item: BetCreate, db: Session = Depends(get_db)):
@@ -56,12 +58,42 @@ async def update_bet(bet_id: int, upd_item: BetUpdate, db: Session = Depends(get
 
     return db_item
 
-
 # API Caio
 @app.get('/users')
 async def get_users():
     request = requests.get("http://192.168.88.103:8000/users")
     return request.content
+
+# API Sport Monks - Odds
+@app.get('/api_odds')
+async def get_odds():
+    # {{baseUrl}}/:version/:sport/odds/pre-match
+    response = requests.get("https://api.sportmonks.com/v3/football/odds/pre-match?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
+    data = response.json()
+
+    ids_fixtures = [fixture_id['fixture_id'] for fixture_id in data['data']]
+
+    return ids_fixtures
+
+# API Sport Monks - Matches
+@app.get('/api_matches')
+async def get_matches():
+    # {{baseUrl}}/:version/:sport/fixtures
+    # {{baseUrl}}/:version/:sport/odds/pre-match/fixtures/:fixtureId 
+    response = requests.get("https://api.sportmonks.com/v3/football/fixtures?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
+    data = response.json()
+
+    ids = await get_odds()
+
+
+    # Iterando sobre os fixtures para acessar o atributo "name"
+    # fixture_names = [fixture['name'] for fixture in data['data']]
+    
+    # return fixture_names
+
+    for fixture in data['data']:
+        if fixture['id'] in ids:
+            return fixture['name']
 
 if __name__ == '__main__':
     import uvicorn
