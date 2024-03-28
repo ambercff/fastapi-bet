@@ -85,7 +85,6 @@ async def get_matches():
 
     ids = await get_odds()
 
-
     # Iterando sobre os fixtures para acessar o atributo "name"
     # fixture_names = [fixture['name'] for fixture in data['data']]
     
@@ -94,6 +93,18 @@ async def get_matches():
     for fixture in data['data']:
         if fixture['id'] in ids:
             return fixture['name']
+
+@app.delete('/delete_bet/{bet_id}')
+async def delete_bet(bet_id: int, db: Session = Depends(get_db)):
+    db_item = db.query(BetDB).filter(BetDB.id == bet_id).first()
+
+    if db_item:
+        db.delete(db_item)
+        db.commit()
+
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bet not found")
 
 if __name__ == '__main__':
     import uvicorn
