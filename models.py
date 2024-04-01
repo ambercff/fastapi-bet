@@ -8,9 +8,8 @@ Base = declarative_base()
 
 # modelo pydantic para criar um objeto
 class BetCreate(BaseModel):
-    name: str
-    odd: float
     price: float
+    team: str
 
     # Usamos o validator é usado para validar e processar dados antes que eles sejam atribuidos aos campos do model
 
@@ -21,18 +20,26 @@ class BetCreate(BaseModel):
             raise ValueError('The price must be bigger than 0')
         return value
     
+    # @validator('team')
+    # def verification_team(cls, value):
+    #     if value != 'Away' or value != 'Home':
+    #         raise ValueError('The team have to be Away or Home')
+    #     return value
+    
 # Modelo pydantic para retornar os objetos
 class BetRead(BaseModel):
     id: int
     name: str
     odd: float
     price: float
+    team: str
 
 # Modelo pydantic para atualizar os objetos
 class BetUpdate(BaseModel):
     name: str
     odd: float
     price: float
+    team: str
 
     @validator('price')
     def verification_price(cls, value):
@@ -48,3 +55,5 @@ class BetDB(Base):
     name = Column(String, index=True)
     odd = Column(Float, index=True)
     price = Column(Float, index=True)
+    team = Column(String, index=True)
+    
