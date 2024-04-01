@@ -33,26 +33,6 @@ async def get_odds():
 
     # return ids_fixtures
 
-# API Sport Monks - Matches
-@app.get('/api_matches')
-async def get_matches():
-    # {{baseUrl}}/:version/:sport/fixtures
-    # {{baseUrl}}/:version/:sport/odds/pre-match/fixtures/:fixtureId 
-    response = requests.get("https://api.sportmonks.com/v3/football/fixtures?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
-    data = response.json()
-
-    ids = await get_odds()
-
-    # Iterando sobre os fixtures para acessar o atributo "name"
-    # fixture_names = [fixture['name'] for fixture in data['data']]
-    
-    # return fixture_names
-
-    for fixture in data['data']:
-        if fixture['id'] in ids:
-            return fixture['name']
-
-
 # 'response_model' serve para dizer qual tipo de retorno a função vai ter, nesse caso vai ser o tipo ItemRead, um modelo criado no arquivo models.py
 @app.post('/create_bet', response_model=BetRead)
 async def create_bet(item: BetCreate, db: Session = Depends(get_db)):
