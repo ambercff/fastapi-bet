@@ -9,6 +9,50 @@ app = FastAPI()
 
 tokens = []
 
+# API Caio
+@app.get('/users')
+async def get_users():
+    request = requests.get("http://192.168.88.103:8000/users")
+    return request.content
+
+# API Sport Monks - Odds
+@app.get('/api_odds')
+async def get_odds():
+    # {{baseUrl}}/:version/:sport/odds/pre-match
+    response = requests.get("https://api.sportmonks.com/v3/football/odds/pre-match?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
+    data = response.json()
+
+    id_odd = 181189
+
+    for odd in data['data']:
+        if odd['id'] == id_odd:
+            odd = odd['value']
+            return odd
+
+    # ids_fixtures = [fixture_id['fixture_id'] for fixture_id in data['data']]
+
+    # return ids_fixtures
+
+# API Sport Monks - Matches
+@app.get('/api_matches')
+async def get_matches():
+    # {{baseUrl}}/:version/:sport/fixtures
+    # {{baseUrl}}/:version/:sport/odds/pre-match/fixtures/:fixtureId 
+    response = requests.get("https://api.sportmonks.com/v3/football/fixtures?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
+    data = response.json()
+
+    ids = await get_odds()
+
+    # Iterando sobre os fixtures para acessar o atributo "name"
+    # fixture_names = [fixture['name'] for fixture in data['data']]
+    
+    # return fixture_names
+
+    for fixture in data['data']:
+        if fixture['id'] in ids:
+            return fixture['name']
+
+
 # 'response_model' serve para dizer qual tipo de retorno a função vai ter, nesse caso vai ser o tipo ItemRead, um modelo criado no arquivo models.py
 @app.post('/create_bet', response_model=BetRead)
 async def create_bet(item: BetCreate, db: Session = Depends(get_db)):
@@ -16,8 +60,10 @@ async def create_bet(item: BetCreate, db: Session = Depends(get_db)):
 
     if exists:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="name is already created")
+    
+    odd = await get_odds()
     # Converte o pydantic para um dicionario
-    db_item = BetDB(**item.model_dump())
+    db_item = BetDB(name=item.name, odd=odd, price=item.price)
     # Adiciona a sessao do banco de dados
     db.add(db_item)
      # Atualiza o ItemDB com os valores do banco após o commit, gerando um novo id
@@ -57,42 +103,6 @@ async def update_bet(bet_id: int, upd_item: BetUpdate, db: Session = Depends(get
     db.refresh(db_item)
 
     return db_item
-
-# API Caio
-@app.get('/users')
-async def get_users():
-    request = requests.get("http://192.168.88.103:8000/users")
-    return request.content
-
-# API Sport Monks - Odds
-@app.get('/api_odds')
-async def get_odds():
-    # {{baseUrl}}/:version/:sport/odds/pre-match
-    response = requests.get("https://api.sportmonks.com/v3/football/odds/pre-match?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
-    data = response.json()
-
-    ids_fixtures = [fixture_id['fixture_id'] for fixture_id in data['data']]
-
-    return ids_fixtures
-
-# API Sport Monks - Matches
-@app.get('/api_matches')
-async def get_matches():
-    # {{baseUrl}}/:version/:sport/fixtures
-    # {{baseUrl}}/:version/:sport/odds/pre-match/fixtures/:fixtureId 
-    response = requests.get("https://api.sportmonks.com/v3/football/fixtures?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb")
-    data = response.json()
-
-    ids = await get_odds()
-
-    # Iterando sobre os fixtures para acessar o atributo "name"
-    # fixture_names = [fixture['name'] for fixture in data['data']]
-    
-    # return fixture_names
-
-    for fixture in data['data']:
-        if fixture['id'] in ids:
-            return fixture['name']
 
 @app.delete('/delete_bet/{bet_id}')
 async def delete_bet(bet_id: int, db: Session = Depends(get_db)):
