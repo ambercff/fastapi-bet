@@ -167,7 +167,14 @@ async def delete_bet(bet_id: int, db: Session = Depends(get_db)):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bet not found")
+@app.get('/get_bets_username/')
+async def get_bets_username(username: str, db: Session = Depends(get_db)):
+    db_item = db.query(BetDB).filter(BetDB.user == username).all()
 
+    if db_item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    return db_item
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run("main:app", host='0.0.0.0', port=8000, reload=True)
