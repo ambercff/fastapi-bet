@@ -20,16 +20,11 @@ class BetCreate(BaseModel):
             raise ValueError('The price must be bigger than 0')
         return value
     
-    # @validator('team')
-    # def verification_team(cls, value):
-    #     if value != 'Away' or value != 'Home':
-    #         raise ValueError('The team have to be Away or Home')
-    #     return value
-    
 # Modelo pydantic para retornar os objetos
 class BetRead(BaseModel):
     id: int
     name: str
+    user: str
     odd: float
     price: float
     team: str
@@ -53,6 +48,7 @@ class BetDB(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
+    user = Column(String, index=True)
     odd = Column(Float, index=True)
     price = Column(Float, index=True)
     team = Column(String, index=True)
