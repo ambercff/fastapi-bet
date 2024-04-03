@@ -37,7 +37,7 @@ async def get_matches(id: int):
     return request.json()
 
 # API Sport Monks - Odds
-@app.get('/api/match/{id}')
+@app.get('/api/match/{id}', tags=['Matches - API'])
 async def get_od_by_id(id: int):
     response = requests.get(f'https://api.sportmonks.com/v3/football/odds/pre-match/fixtures/{id}?api_token=5kmSGVTWIc73kw3gSY9txBnQS1QoR2UfyZ3OEcuKPGQVE3qpMuO9bZZVQFDb', proxies=PROXIES)
     
@@ -81,7 +81,7 @@ async def get_od_by_id(id: int):
     return lista
 
 # 'response_model' serve para dizer qual tipo de retorno a função vai ter, nesse caso vai ser o tipo ItemRead, um modelo criado no arquivo models.py
-@app.post('/create_bet', response_model=BetRead)
+@app.post('/create_bet', response_model=BetRead, tags=["Bet"])
 async def create_bet(username: str, password: str, id_match: int, item: BetCreate, db: Session = Depends(get_db)):
     matches = await get_matches(id_match)
     token_gen = await get_token_gen(username)
@@ -123,7 +123,7 @@ async def create_bet(username: str, password: str, id_match: int, item: BetCreat
     
     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='The team have to be Away or Home!')
 
-@app.get('/bets', response_model=List[BetRead])
+@app.get('/bets', response_model=List[BetRead], tags=["Bet"])
 async def get_all_bets(db: Session = Depends(get_db)):
     db_items = db.query(BetDB).all()
 
@@ -132,7 +132,7 @@ async def get_all_bets(db: Session = Depends(get_db)):
     
     return db_items
 
-@app.get('/bets/{bet_id}', response_model=BetRead)
+@app.get('/bets/{bet_id}', response_model=BetRead, tags=["Bet"])
 async def get_bet(bet_id: int, db: Session = Depends(get_db)):
     db_item = db.query(BetDB).filter(BetDB.id == bet_id).first()
 
@@ -141,7 +141,7 @@ async def get_bet(bet_id: int, db: Session = Depends(get_db)):
     
     return db_item
 
-@app.put('/bets/{bet_id}', response_model=BetRead)
+@app.put('/bets/{bet_id}', response_model=BetRead, tags=["Bet"])
 async def update_bet(bet_id: int, upd_item: BetUpdate, db: Session = Depends(get_db)):
     db_item = db.query(BetDB).filter(BetDB.id == bet_id).first()
 
@@ -156,7 +156,7 @@ async def update_bet(bet_id: int, upd_item: BetUpdate, db: Session = Depends(get
 
     return db_item
 
-@app.delete('/delete_bet/{bet_id}')
+@app.delete('/delete_bet/{bet_id}', tags=["Bet"])
 async def delete_bet(bet_id: int, db: Session = Depends(get_db)):
     db_item = db.query(BetDB).filter(BetDB.id == bet_id).first()
 
@@ -167,7 +167,7 @@ async def delete_bet(bet_id: int, db: Session = Depends(get_db)):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bet not found")
-@app.get('/get_bets_username/')
+@app.get('/get_bets_username/', tags=["Bet"])
 async def get_bets_username(username: str, db: Session = Depends(get_db)):
     db_item = db.query(BetDB).filter(BetDB.user == username).all()
 
